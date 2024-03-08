@@ -4,6 +4,7 @@ body {
 	display: flex;
 	width: 100vw;
 	height: 100vh;
+	background-color: #0779bf;
 	margin: 0;
 }
 
@@ -50,8 +51,8 @@ textarea {
 	padding: 0.4em;
 	margin: 0 0 0.5em 0;
 	box-sizing: border-box;
-	border: 1px solid #ccc;
-	border-radius: 2px;
+	border: none;
+	border-radius: 10px;
 }
 
 input:disabled {

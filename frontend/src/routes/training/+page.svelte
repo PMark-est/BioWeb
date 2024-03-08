@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import Nav from "../Components/NavBar.svelte";
-	import Search from "../Components/SearchPage.svelte";
+	import Training from "../../Components/TrainingPage.svelte";
+	import Nav from "../../Components/NavBar.svelte";
 	const urlBase: string = "http://127.0.0.1:8000/"
 	let offline: boolean = true;
 	async function doSomething(){
@@ -21,11 +21,11 @@
 </script>
 
 <main>
-	<Nav topButtonText="Download Page" bottomButtonText="Training"/>
+	<Nav topButtonText="Download Page" bottomButtonText="Metadata"/>
 	{#if offline}
 		<h1 id="offline">BACKEND OFFLINE!</h1>
 	{:else}
-		<Search />
+		<Training />
 	{/if}
 </main>
 

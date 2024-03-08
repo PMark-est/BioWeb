@@ -1,6 +1,6 @@
 // Gets the id of a bacterium
 export async function getTaxa(name: string): Promise<number> {
-	if (name.length === 0) return 0;
+	if (name.length === 0) return -1;
 	const nameParts: string[] = name.split(' ');
 	const taxa = await fetch('https://www.bv-brc.org/api/taxonomy/', {
 		method: 'POST',
@@ -21,7 +21,7 @@ export async function getTaxa(name: string): Promise<number> {
 }
 
 export async function getAntibiotics(ID: number): Promise<string[]> {
-	return fetch(
+	const promise = await fetch(
 		`https://www.bv-brc.org/api/genome_amr/??and(eq(genome_id,*)&genome(eq(taxon_lineage_ids,${ID})),eq(evidence,%22Laboratory%20Method%22))&limit(1)&facet((field,antibiotic),(mincount,1),(limit,-1))`,
 		{
 			headers: { Accept: 'application/solr+json' }
@@ -31,6 +31,14 @@ export async function getAntibiotics(ID: number): Promise<string[]> {
 		.then((resp) => {
 			return resp.facet_counts.facet_fields.antibiotic;
 		});
+	return new Promise<string[]>((resolve, reject) => {
+		if (promise.length != 0 && promise.length % 2 == 0) resolve(promise);
+		else {
+			console.log('This array shouldnt be empty or with an odd length');
+			console.log(promise);
+			reject(Error('Error retriving list, details have been logged in the console'));
+		}
+	});
 }
 
 export function hash(string: string): number {
@@ -45,7 +53,7 @@ export function hash(string: string): number {
 	return hash;
 }
 
-export function listToMap(list: string[]): Map<number, string> {
+export function listToMap(list: string[]): Map<string, number> {
 	let map = new Map();
 	for (let i = 0; i < list.length; i += 2) map.set(list[i], list[i + 1]);
 	return map;

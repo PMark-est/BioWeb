@@ -1,57 +1,65 @@
 <script lang="ts">
     import {listToMap, hash, getTaxa, getAntibiotics} from "../lib/helpers";
     import searchIcon from "../lib/search.png";
-    const test:number = 3;
 	const newColor:string = "rgb(255, 0, 0)";
-    const tempStore:Map<number, Map<number, string>> = new Map();
-	let elem: any;
-	let display: boolean = false;
-    let items: Map<number, string> | undefined = new Map();
-	let selected: Map<number, string> = new Map();
+	let searchBarRef: HTMLInputElement;
+	let antibiotics: Promise<Map<string, number>> | undefined;
+	let selectedAntibiotics: Set<string> = new Set<string>();
 
-	const handleClick = () =>{
-        const name: string = elem.value.toLowerCase();
+	async function handleClick(){
+        const name: string = searchBarRef.value.toLowerCase();
         const nameHash: number = hash(name) % 101;
-        if (tempStore.has(nameHash)){
-            items = tempStore.get(nameHash);
-            display = true;
+		const sessionStorageElem: string | null = sessionStorage.getItem(String(nameHash));
+		if (sessionStorageElem != null){
+			const map: Map<string, number> | PromiseLike<Map<string, number>> = listToMap(JSON.parse(sessionStorageElem));
+				antibiotics = new Promise((resolve, reject) => {
+				resolve(map);
+			});
             return;
-        };
-        getTaxa(name).then((id) => {
-            display = false;
-            if (id == -1){
-                return;
-            };
-            getAntibiotics(id).then((resp) => {
-                items = listToMap(resp);
-                tempStore.set(nameHash, items);
-                display = true;
-                console.log(items);
-            });
-        });
+		}
+
+		const id: number = await getTaxa(name);
+		if (id === -1){
+			antibiotics = undefined;
+			return;
+		}
+		antibiotics = getAntibiotics(id).then((list) => {
+			sessionStorage.setItem(String(nameHash), JSON.stringify(list));
+			return listToMap(list);
+		});
+	}
+
+	async function downloadFile(antibiotic: string){
+		console.log(antibiotic);
+	}
+
+	async function downloadFiles(selection: string[]){
+		for(const s of selection){
+			downloadFile(s);
+		}
 	}
 
 	const onClick = (e: any) => {
 		let color = e.style.backgroundColor;
 		if (color != newColor){
 			e.style.backgroundColor = newColor;
-			selected.set(e.id, e)
+			selectedAntibiotics.add(e.id);
 		}
 		else{
-			e.style.backgroundColor = "#000";
-			selected.delete(e.id);
+			e.style.backgroundColor = "#fff";
+			selectedAntibiotics.delete(e.id);
 		}
 	}
 
 	const submitDownload = (type: any) => {
 		if(type === "all"){
-			alert("all")
-			console.log(items);
+			if (antibiotics == null) return;
+			antibiotics.then((resp) => {
+				downloadFiles(Array.from(resp.keys()));
+			});
 		} else if (type === "selected"){
-			alert("selected")
-			for (const v of selected.values()){
-				//console.log(items[v.id].item);
-			}
+			if (selectedAntibiotics.size === 0) return;
+			downloadFiles(Array.from(selectedAntibiotics));
 		}
 	}
 
@@ -60,24 +68,48 @@
     }
 </script>
 
-<h1>Enter bacterium name</h1>
+<h1 id="name">ENTER BACTERIUM NAME</h1>
 <form on:submit|preventDefault="{onFormSubmit}">
-    <input bind:this={elem} id="searchBar" type="text">
+    <input bind:this={searchBarRef} id="searchBar" type="text">
     <input on:click={handleClick} id="searchConfirm" type="image" alt="not found" src={searchIcon} />
 </form>
 <div id="downloadBtns">
     <button on:click={() => submitDownload("all")} class="downloadBtn">Download all</button>
     <button on:click={() => submitDownload("selected")} class="downloadBtn">Download selected</button>
 </div>
-<ul >	
-    {#if display}
-        {#each [...items] as item, i}
-        <li><button id={String(i)} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
-        {/each}
-	{/if}
-</ul>
+	{#await antibiotics}
+		<p>waiting...</p>
+	{:then items}
+		{#if items === undefined}
+			<h1>NO RESULTS FOUND</h1>
+		{:else}
+			<ul >	
+				{#each [...items] as item}
+				<li><button id={item[0]} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
+				{/each}
+			</ul>
+		{/if}
+	{:catch error}
+		<p>{error.message}</p>
+	{/await}
 <style>
-	h1 {
+	h1{
+		color: #fff;
+		text-shadow:
+			2px 2px 0 #000,
+			-2px 2px 0 #000,
+			-2px -2px 0 #000,
+			2px -2px 0 #000;
+	}
+	.routes {
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+	}
+	.routes button{
+		width: 200px;
+	}
+	#name {
 		margin-top: 25vh;
 	}
 	form{
@@ -91,6 +123,7 @@
 	#searchConfirm{
 		width: 50px;
 		height: 50px;
+		padding: 0;
 	}
 	#searchBar{
 		flex: 1;
@@ -136,7 +169,7 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 10px;
-		background-color: #000;
-		color: #fff;
+		background-color: #fff;
+		color: #000;
 	}
 </style>
