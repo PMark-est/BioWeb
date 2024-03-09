@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import Nav from "../Components/NavBar.svelte";
 	import Search from "../Components/SearchPage.svelte";
+	import Nav from "../Components/NavBar.svelte";
 	const urlBase: string = "http://127.0.0.1:8000/"
 	let offline: boolean = true;
 	async function doSomething(){
@@ -16,7 +16,6 @@
 	}
 	onMount(async () => {
 		const a = doSomething();
-		console.log(a);
 	});
 </script>
 

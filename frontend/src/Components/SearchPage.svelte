@@ -1,20 +1,24 @@
 <script lang="ts">
     import {listToMap, hash, getTaxa, getAntibiotics} from "../lib/helpers";
     import searchIcon from "../lib/search.png";
+	const urlBase: string = "http://127.0.0.1:8000/"
 	const newColor:string = "rgb(255, 0, 0)";
 	let searchBarRef: HTMLInputElement;
 	let antibiotics: Promise<Map<string, number>> | undefined;
-	let selectedAntibiotics: Set<string> = new Set<string>();
+	let selectedAntibiotics: Map<string, number> = new Map<string, number>();
+	let ID: number;
 
 	async function handleClick(){
         const name: string = searchBarRef.value.toLowerCase();
         const nameHash: number = hash(name) % 101;
 		const sessionStorageElem: string | null = sessionStorage.getItem(String(nameHash));
 		if (sessionStorageElem != null){
-			const map: Map<string, number> | PromiseLike<Map<string, number>> = listToMap(JSON.parse(sessionStorageElem));
+			console.log(JSON.parse(sessionStorageElem));
+			const map: Map<string, number> | PromiseLike<Map<string, number>> = listToMap(JSON.parse(sessionStorageElem)[1]);
 				antibiotics = new Promise((resolve, reject) => {
 				resolve(map);
 			});
+			ID = JSON.parse(sessionStorageElem)[0];
             return;
 		}
 
@@ -23,8 +27,9 @@
 			antibiotics = undefined;
 			return;
 		}
+		ID = id;
 		antibiotics = getAntibiotics(id).then((list) => {
-			sessionStorage.setItem(String(nameHash), JSON.stringify(list));
+			sessionStorage.setItem(String(nameHash), JSON.stringify([id, list]));
 			return listToMap(list);
 		});
 	}
@@ -34,20 +39,26 @@
 	}
 
 	async function downloadFiles(selection: string[]){
+		const name: string = searchBarRef.value.toLowerCase();
 		for(const s of selection){
+			const query: string = `?bacterium=${name}&antibiotic=${s}&id=${ID}&amount=${selectedAntibiotics.get(s)}`
+			const a = await fetch(urlBase+"test"+query);
+			console.log(a.json());
 			downloadFile(s);
 		}
 	}
 
 	const onClick = (e: any) => {
-		let color = e.style.backgroundColor;
+		const color = e.style.backgroundColor;
+		const parts = e.id.split(",")
+		console.log(ID);
 		if (color != newColor){
 			e.style.backgroundColor = newColor;
-			selectedAntibiotics.add(e.id);
+			selectedAntibiotics.set(parts[0], parts[1]);
 		}
 		else{
 			e.style.backgroundColor = "#fff";
-			selectedAntibiotics.delete(e.id);
+			selectedAntibiotics.delete(parts[0]);
 		}
 	}
 
@@ -59,7 +70,7 @@
 			});
 		} else if (type === "selected"){
 			if (selectedAntibiotics.size === 0) return;
-			downloadFiles(Array.from(selectedAntibiotics));
+			downloadFiles(Array.from(selectedAntibiotics.keys()));
 		}
 	}
 
@@ -85,7 +96,7 @@
 		{:else}
 			<ul >	
 				{#each [...items] as item}
-				<li><button id={item[0]} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
+				<li><button id={`${item[0]},${item[1]}`} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
 				{/each}
 			</ul>
 		{/if}
@@ -100,14 +111,6 @@
 			-2px 2px 0 #000,
 			-2px -2px 0 #000,
 			2px -2px 0 #000;
-	}
-	.routes {
-        display: flex;
-        flex-direction: column;
-        align-items: baseline;
-	}
-	.routes button{
-		width: 200px;
 	}
 	#name {
 		margin-top: 25vh;
