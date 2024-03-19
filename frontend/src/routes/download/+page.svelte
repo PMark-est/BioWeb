@@ -3,20 +3,19 @@
 	import Download from "../../Components/DownloadPage.svelte";
 	import Nav from "../../Components/NavBar.svelte";
 	const urlBase: string = "http://127.0.0.1:8000/"
-	let offline: boolean = true;
+	let offline: boolean = false;
 	async function doSomething(){
 		try{
 			const data = await fetch(urlBase);
-			offline = false;
 			return data;
 		}catch(error){
 			console.log("Promise failed, problem with backend. Is the backend running?");
+			offline = true;
 			return;
 		}
 	}
 	onMount(async () => {
 		const a = doSomething();
-		console.log(a);
 	});
 </script>
 

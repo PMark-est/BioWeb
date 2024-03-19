@@ -6,6 +6,9 @@
 	let searchBarRef: HTMLInputElement;
 	let antibiotics: Promise<Map<string, number>> | undefined;
 	let selectedAntibiotics: Map<string, number> = new Map<string, number>();
+	let downloading: boolean;
+	let downloaded: number;
+	let downloadAmount: number;
 	let ID: number;
 
 	async function handleClick(){
@@ -13,7 +16,6 @@
         const nameHash: number = hash(name) % 101;
 		const sessionStorageElem: string | null = sessionStorage.getItem(String(nameHash));
 		if (sessionStorageElem != null){
-			console.log(JSON.parse(sessionStorageElem));
 			const map: Map<string, number> | PromiseLike<Map<string, number>> = listToMap(JSON.parse(sessionStorageElem)[1]);
 				antibiotics = new Promise((resolve, reject) => {
 				resolve(map);
@@ -34,24 +36,31 @@
 		});
 	}
 
-	async function downloadFile(antibiotic: string){
-		console.log(antibiotic);
-	}
-
 	async function downloadFiles(selection: string[]){
 		const name: string = searchBarRef.value.toLowerCase();
+		const API = urlBase + "test";
+		downloading = true;
+		downloaded = 0;
+		downloadAmount = selection.length;
 		for(const s of selection){
-			const query: string = `?bacterium=${name}&antibiotic=${s}&id=${ID}&amount=${selectedAntibiotics.get(s)}`
-			const a = await fetch(urlBase+"test"+query);
-			console.log(a.json());
-			downloadFile(s);
+			const data = {
+				'bacterium': name,
+				'antibiotic': s,
+				'id': ID,
+				'amount': (<HTMLInputElement>document.getElementById(s)).value,
+			}
+			await fetch(API, {
+				method: 'POST',
+				body: JSON.stringify(data)
+			});
+			downloaded++;
 		}
+		downloading = false;
 	}
 
 	const onClick = (e: any) => {
 		const color = e.style.backgroundColor;
 		const parts = e.id.split(",")
-		console.log(ID);
 		if (color != newColor){
 			e.style.backgroundColor = newColor;
 			selectedAntibiotics.set(parts[0], parts[1]);
@@ -75,35 +84,47 @@
 	}
 
     const onFormSubmit = (e: SubmitEvent) => {
+		selectedAntibiotics.clear();
         const formData = new FormData(e.target as HTMLFormElement);
     }
 </script>
 
+{#if downloading}
+	<h1 class="downloading">DOWNLOADING... {downloaded}/{downloadAmount}</h1>
+{:else if downloading === false}
+	<h1 class="downloading">DOWNLOADED!</h1>
+{/if}
 <h1 id="name">ENTER BACTERIUM NAME</h1>
 <form on:submit|preventDefault="{onFormSubmit}">
-    <input bind:this={searchBarRef} id="searchBar" type="text">
-    <input on:click={handleClick} id="searchConfirm" type="image" alt="not found" src={searchIcon} />
+	<input bind:this={searchBarRef} id="searchBar" type="text">
+	<input on:click={handleClick} id="searchConfirm" type="image" alt="not found" src={searchIcon} />
 </form>
 <div id="downloadBtns">
-    <button on:click={() => submitDownload("all")} class="downloadBtn">Download all</button>
-    <button on:click={() => submitDownload("selected")} class="downloadBtn">Download selected</button>
+	<button on:click={() => submitDownload("all")} class="downloadBtn">Download all</button>
+	<button on:click={() => submitDownload("selected")} class="downloadBtn">Download selected</button>
 </div>
-	{#await antibiotics}
-		<p>waiting...</p>
-	{:then items}
-		{#if items === undefined}
-			<h1>NO RESULTS FOUND</h1>
-		{:else}
-			<ul >	
-				{#each [...items] as item}
-				<li><button id={`${item[0]},${item[1]}`} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
-				{/each}
-			</ul>
-		{/if}
-	{:catch error}
-		<p>{error.message}</p>
-	{/await}
+{#await antibiotics}
+	<h1>LOADING...</h1>
+{:then items}
+	{#if items === undefined}
+		<h1>NO RESULTS FOUND</h1>
+	{:else}
+		<ul >	
+			{#each [...items] as item}
+			<li><button id={`${item[0]}`} value={item[1]} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
+			{/each}
+		</ul>
+	{/if}
+{:catch error}
+	<h1>{error.message}</h1>
+{/await}
 <style>
+	.downloading{
+		position: absolute;
+		width: 100%;
+		text-align: center;
+    	top: 10%;
+	}
 	h1{
 		color: #fff;
 		text-shadow:
