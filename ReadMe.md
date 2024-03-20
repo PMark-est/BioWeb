@@ -5,8 +5,10 @@
 ## Prerequisites
 
 - Python installed
-- django installed (google how to install django python if you don't know how)
+- django installed (pip install django)
+- django-cors-headers installed (pip install django-cors-headers)
 - node installed (again google if needed)
+- npm installed
 - run `npm install` inside the folder "frontend"
 
 ## How to run
@@ -22,3 +24,5 @@ To start the frontend, inside the frontend folder run
 ```bash
 npm run dev
 ```
+
+# Useful to use with https://github.com/PMark-est/Kmer-Counter.
