@@ -22,3 +22,5 @@ To start the frontend, inside the frontend folder run
 ```bash
 npm run dev
 ```
+
+# Useful to use with https://github.com/PMark-est/Kmer-Counter.
