@@ -11,7 +11,7 @@
 	let downloadAmount: number;
 	let ID: number;
 
-	async function handleClick(){
+	async function findBacterium(){
         const name: string = searchBarRef.value.toLowerCase();
         const nameHash: number = hash(name) % 101;
 		const sessionStorageElem: string | null = sessionStorage.getItem(String(nameHash));
@@ -58,7 +58,7 @@
 		downloading = false;
 	}
 
-	const onClick = (e: any) => {
+	const antibioticSelected = (e: any) => {
 		const color = e.style.backgroundColor;
 		const parts = e.id.split(",")
 		if (color != newColor){
@@ -97,28 +97,33 @@
 <h1 id="name">ENTER BACTERIUM NAME</h1>
 <form on:submit|preventDefault="{onFormSubmit}">
 	<input bind:this={searchBarRef} id="searchBar" type="text">
-	<input on:click={handleClick} id="searchConfirm" type="image" alt="not found" src={searchIcon} />
+	<input on:click={findBacterium} id="searchConfirm" type="image" alt="not found" src={searchIcon} />
 </form>
 <div id="downloadBtns">
 	<button on:click={() => submitDownload("all")} class="downloadBtn">Download all</button>
 	<button on:click={() => submitDownload("selected")} class="downloadBtn">Download selected</button>
 </div>
-{#await antibiotics}
+<div id="listWrapper">
+	{#await antibiotics}
 	<h1>LOADING...</h1>
-{:then items}
+	{:then items}
 	{#if items === undefined}
-		<h1>NO RESULTS FOUND</h1>
+	<h1>NO RESULTS FOUND</h1>
 	{:else}
-		<ul >	
-			{#each [...items] as item}
-			<li><button id={`${item[0]}`} value={item[1]} on:click={(e) => onClick(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
-			{/each}
-		</ul>
+	<ul >	
+		{#each [...items] as item}
+		<li><button id={`${item[0]}`} value={item[1]} on:click={(e) => antibioticSelected(e.target)} class="liBtn">Antibiotic, Strains: {item[0]}, {item[1]}</button></li>
+		{/each}
+	</ul>
 	{/if}
-{:catch error}
+	{:catch error}
 	<h1>{error.message}</h1>
-{/await}
+	{/await}
+</div>
 <style>
+	#listWrapper{
+		overflow-y: scroll;
+	}
 	.downloading{
 		position: absolute;
 		width: 100%;
@@ -170,7 +175,6 @@
 	
 	ul{
 		flex: 1;
-		overflow-y: auto;
 		scrollbar-width: none; /* for firefox, ie, and edge */
 		columns: 2;
 		list-style: none;

@@ -4,7 +4,7 @@
 	import Nav from "../Components/NavBar.svelte";
 	const urlBase: string = "http://127.0.0.1:8000/"
 	let offline: boolean = false;
-	async function doSomething(){
+	async function checkBackend(){
 		try{
 			const data = await fetch(urlBase);
 			return data;
@@ -15,7 +15,7 @@
 		}
 	}
 	onMount(async () => {
-		const a = doSomething();
+		const a = checkBackend();
 	});
 </script>
 

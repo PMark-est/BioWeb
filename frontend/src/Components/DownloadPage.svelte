@@ -15,7 +15,7 @@
     let antibiotic: string = "";
     let res: number;
     let sus: number;
-    async function midagi(){
+    async function getFolders(){
         prm = fetch(urlBase+"viewf")
         .then((resp) => resp.json())
         .then((resp) => {
@@ -24,7 +24,7 @@
     }
 
     onMount(() => {
-        midagi()
+        getFolders()
     })
 
     function shake(resInput: HTMLInputElement, susInput: HTMLInputElement){
@@ -99,7 +99,7 @@
         downloading = false;
     }
 
-    function onClick(e: any){
+    function antibioticSelected(e: any){
         if (!fileView){
             bacterium = e.id;
             fileView = true;
@@ -125,10 +125,10 @@
 
     function toFolderView(){
         fileView = false;
-        midagi()
+        getFolders()
     }
 
-    function abc() {
+    function disablePopup() {
         displayPopup = false;
     }
 </script>
@@ -146,7 +146,7 @@
         {#if items !== undefined}
         <ul >	
             {#each [...items] as item}
-            <li><button id={`${item}`} class="liBtn" on:click={(e) => onClick(e.target)}>{item}</button></li>
+            <li><button id={`${item}`} class="liBtn" on:click={(e) => antibioticSelected(e.target)}>{item}</button></li>
             {/each}
         </ul>
         {/if}
@@ -179,7 +179,7 @@
 {#if displayPopup}
     <div id="popup">
         <h1>THERE ARE ITEMS ALREADY BEING DOWNLOADED</h1>
-        <button on:click={abc}>CLOSE</button>
+        <button on:click={disablePopup}>CLOSE</button>
     </div>
 {/if}
 
