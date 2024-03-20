@@ -53,7 +53,7 @@ def downloadMetadata(path, antibiotic, id, amount):
     URL = "https://www.bv-brc.org/api/genome_amr/?&http_accept=text/csv&http_download=true"
     formattedAntibiotic = formatAntibiotic(antibiotic)
     body = {
-        "rql": f"eq(genome_id%2C*)%26genome(eq(taxon_lineage_ids%2C{id}))%26eq(antibiotic%2C%2522{formattedAntibiotic}%2522)%26sort(id)%26limit({amount})"
+        "rql": f"eq(genome_id%2C*)%26genome(eq(taxon_lineage_ids%2C{id}))%26and(eq(evidence%2C%2522Laboratory%2520Method%2522)%2Ceq(antibiotic%2C%2522{antibiotic}%2522))%26sort(id)%26limit({amount})"
     }
     response = requests.post(URL, data=body)
     with open(path, mode="wb") as file:
@@ -96,11 +96,11 @@ def unZip(dest):
                 genome.write(line)
         genome.truncate()
 
-def getInitialFileSize(response, folder, existingFiles):
+def getInitialFileSize(response, folder, id):
         contents = os.listdir(folder)
         found = False
         for file in contents:
-            if file == "meta.csv" or file == "downloaded.csv": continue
+            if file == "meta.csv" or file == "downloaded.csv" or file=="counts.csv": continue
             found = True
             file_stats = os.stat(f"{folder}/{file}")
             return file_stats.st_size / 3 # unzipped
@@ -110,6 +110,6 @@ def getInitialFileSize(response, folder, existingFiles):
                 with ZipFile(GENOME_PATH, 'r') as zip_ref:
                     contents = zip_ref.namelist()
                     if len(contents) == 0: return 0
-                    existingFiles.add(contents[0].split("/")[0])
                 unZip(folder)
+                os.remove(f"{folder}/{id}.fna")
                 return file.tell()

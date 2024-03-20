@@ -38,7 +38,7 @@
 
 	async function downloadFiles(selection: string[]){
 		const name: string = searchBarRef.value.toLowerCase();
-		const API = urlBase + "test";
+		const API = urlBase + "metadata";
 		downloading = true;
 		downloaded = 0;
 		downloadAmount = selection.length;

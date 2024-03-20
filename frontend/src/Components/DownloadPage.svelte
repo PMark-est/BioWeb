@@ -70,14 +70,14 @@
         const { done, value } = await reader.read();
         collectingData = false;
         text = (decoder.decode(value));
-        const dx: number = 100 / (amount*Number(text));
+        var progress: number = 0;
         while (true){
             const { done, value } = await reader.read();
             text = (decoder.decode(value));
+            progress += Number(decoder.decode(value));
             if (done) break;
-            progressbar.style.width = `${Number(text)*dx}%`;
+            progressbar.style.width = `${progress}%`;
         }
-        console.log("Downloaded!");
     }
 
     async function download(){
@@ -185,7 +185,6 @@
 
 
 <style>
-
     #popup{
         position: absolute;
         background-color: #0008;

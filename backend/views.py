@@ -9,7 +9,7 @@ def home(request):
     return HttpResponse()
 
 @csrf_exempt 
-def test(request):
+def metadataDownload(request):
     body = load(request.body)
     antibiotic = body["antibiotic"]
     amount = body["amount"]
@@ -57,6 +57,10 @@ def test(request):
 def viewContents(requests):
     bacterium = requests.GET.get("bacterium")
     files = []
+    path = f"{DATA_PATH}/{bacterium}/metadataSummary.csv"
+    if not os.path.exists(path):
+        filesDict = {"files": []}
+        return JsonResponse(filesDict)
     with open(f"{DATA_PATH}/{bacterium}/metadataSummary.csv", "r") as summary:
         for line in summary:
             parts = line.split(",")
@@ -92,11 +96,13 @@ def stream_data(bacterium, antibiotic, res, sus):
         next(metadata)
         parts = metadata.readline().split(",")
         id = parts[1].strip("\"")
+        pheno = parts[4].strip("\"")
         body["q"] = f"in(genome_id,({id}))"
         response = requests.post(URL, data=body, stream=True)
-        downloadedBytes = getInitialFileSize(response, folder, existingFiles)
+        downloadedBytes = getInitialFileSize(response, folder, id)
         yield downloadedBytes
-        downloadedBytes = 0
+        dx = 100/((res + sus) * downloadedBytes)
+        progress = size * dx
         metadata.seek(0)
         next(metadata)
         for line in metadata:
@@ -110,9 +116,8 @@ def stream_data(bacterium, antibiotic, res, sus):
                 response = requests.post(URL, data=body, stream=True)
                 with open(GENOME_PATH, mode="wb") as file:
                     for chunk in response.iter_content(chunk_size=size):
-                        downloadedBytes += size
                         time.sleep(secs)
-                        yield downloadedBytes
+                        yield progress
                         file.write(chunk)
                 unZip(folder)
             elif pheno == "Resistant" and res > 0:
@@ -121,9 +126,8 @@ def stream_data(bacterium, antibiotic, res, sus):
                 response = requests.post(URL, data=body, stream=True)
                 with open(GENOME_PATH, mode="wb") as file:
                     for chunk in response.iter_content(chunk_size=size):
-                        downloadedBytes += size
                         time.sleep(secs)
-                        yield downloadedBytes
+                        yield progress
                         file.write(chunk)
                 unZip(folder)
             if res == 0 and sus == 0: break
