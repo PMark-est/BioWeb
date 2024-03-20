@@ -8,6 +8,7 @@
 - django installed (pip install django)
 - django-cors-headers installed (pip install django-cors-headers)
 - node installed (again google if needed)
+- npm installed
 - run `npm install` inside the folder "frontend"
 
 ## How to run
