@@ -6,7 +6,7 @@
 
 - Python installed (Definitely works with 3.10.12)
   - Pip installed
-- Requirements.txt installed
+- requirements.txt installed
 - node installed
 - npm installed
 - run `npm install` inside the folder "frontend"
