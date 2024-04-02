@@ -2,7 +2,7 @@
     import {listToMap, hash, getTaxa, getAntibiotics} from "../lib/helpers";
     import searchIcon from "../lib/search.png";
 	const urlBase: string = "http://127.0.0.1:8000/"
-	const newColor:string = "rgb(255, 0, 0)";
+	const newColor:string = "rgb(63, 234, 120)";
 	let searchBarRef: HTMLInputElement;
 	let antibiotics: Promise<Map<string, number>> | undefined;
 	let selectedAntibiotics: Map<string, number> = new Map<string, number>();

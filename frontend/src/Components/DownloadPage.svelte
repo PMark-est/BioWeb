@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
     import backIcon from "../lib/back.png";
-    const newColor:string = "rgb(255, 0, 0)";
+    const newColor:string = "rgb(63, 234, 120)";
     const urlBase: string = "http://127.0.0.1:8000/"
 	let ref: HTMLInputElement | undefined;
     let prm: Promise<string[]> = new Promise((resolve, reject) => {
