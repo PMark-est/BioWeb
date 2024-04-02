@@ -27,3 +27,13 @@ npm run dev
 ```
 
 # Useful to use with https://github.com/PMark-est/Kmer-Counter.
+
+# Sample screenshots
+
+## Metadata files download page
+
+![image info](./readmeImg/MetaDownload.png)
+
+## Genome files download page
+
+![image info](./readmeImg/FileDownload.png)
